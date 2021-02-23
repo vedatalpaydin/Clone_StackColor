@@ -56,16 +56,20 @@ public class PlayerController : MonoBehaviour
         scoreText.text = 0 + "";
     }
 
-
-    void Update()
+    void ProcessProgressBar()
     {
         if (transform.position.z <= maxDistance && transform.position.z <= finishLine.position.z)
         {
             float distance = 1 - (GetDistance() / maxDistance);
             progressSlider.value = distance;
         }
+    }
 
+    void Update()
+    {
         scoreText.text = score + "";
+        ProcessProgressBar();
+        
         if (cameraSetTarget)
         {
             if (processFinish)
@@ -92,6 +96,7 @@ public class PlayerController : MonoBehaviour
             anim.SetTrigger("Kick");
             powerBar.SetActive(false);
             powerUp = false;
+            gameIsStart = false;
         }
         else
         {
@@ -102,12 +107,12 @@ public class PlayerController : MonoBehaviour
                 if (Input.GetMouseButtonDown(0))
                     kickPower++;
                 if (kickPower > 0)
-                    kickPower -= 0.1f;
+                    kickPower -= 0.05f;
                 _powerController.SetPower(kickPower);
             }
             else
             {
-                if (Input.GetMouseButtonDown(0))
+                if (Input.GetMouseButtonDown(0) && !gameIsFinish)
                 {
                     lastMousePos = Input.mousePosition;
                     gameIsStart = true;
@@ -140,7 +145,7 @@ public class PlayerController : MonoBehaviour
         {
             if (playerColor.Equals(other.GetComponent<MeshRenderer>().material.color))
             {
-                if(processFinish) return;
+                if (processFinish) return;
                 foreach (var collect in collects)
                 {
                     float height = collect.transform.position.y;
@@ -173,7 +178,7 @@ public class PlayerController : MonoBehaviour
                     au.PlayOneShot(failSFX);
                     collects.Remove(item);
                     Destroy(item);
-                    if (collects.Count <=0)
+                    if (collects.Count <= 0)
                     {
                         GameOver();
                     }
@@ -214,6 +219,8 @@ public class PlayerController : MonoBehaviour
             c.AddComponent<BoxCollider>();
             c.AddComponent<Rigidbody>();
         }
+
+        gameIsFinish = true;
         gameIsStart = false;
         gameOver.SetActive(true);
     }
@@ -274,9 +281,10 @@ public class PlayerController : MonoBehaviour
         {
             collect.AddComponent<Rigidbody>();
             collect.AddComponent<BoxCollider>();
-            collect.GetComponent<Rigidbody>().AddForce(Vector3.forward * ((kickPower+1) * 500));
+            collect.GetComponent<Rigidbody>().AddForce(Vector3.forward * ((kickPower + 1) * 500));
             collect.transform.parent = null;
         }
+
         gameIsFinish = false;
     }
 
