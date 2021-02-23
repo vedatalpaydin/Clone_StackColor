@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -36,6 +37,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip collectSFX;
     [SerializeField] private AudioClip failSFX;
     [SerializeField] private GameObject gameOver;
+    [SerializeField] private GameObject startGame;
 
     private void Start()
     {
@@ -113,6 +115,7 @@ public class PlayerController : MonoBehaviour
 
                 if (gameIsStart)
                 {
+                    startGame.SetActive(false);
                     anim.SetTrigger("Run");
                     if (rb.velocity.z < maxSpeed)
                         rb.AddForce(Vector3.forward * Time.deltaTime * moveSpeed * Time.time);
@@ -133,11 +136,11 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(gameIsFinish) return;
         if (other.tag == "Pickup")
         {
             if (playerColor.Equals(other.GetComponent<MeshRenderer>().material.color))
             {
+                if(processFinish) return;
                 foreach (var collect in collects)
                 {
                     float height = collect.transform.position.y;
@@ -194,7 +197,7 @@ public class PlayerController : MonoBehaviour
 
         if (other.tag == "FinishWall")
         {
-            Destroy(GetComponent<BoxCollider>());
+            GetComponent<BoxCollider>().isTrigger = false;
             rb.velocity = Vector3.zero;
         }
     }
@@ -271,9 +274,14 @@ public class PlayerController : MonoBehaviour
         {
             collect.AddComponent<Rigidbody>();
             collect.AddComponent<BoxCollider>();
-            collect.GetComponent<Rigidbody>().AddForce(Vector3.forward * ((kickPower + 10) * 400));
+            collect.GetComponent<Rigidbody>().AddForce(Vector3.forward * ((kickPower+1) * 500));
             collect.transform.parent = null;
         }
         gameIsFinish = false;
+    }
+
+    public void LoadNewScene()
+    {
+        SceneManager.LoadScene("Level1");
     }
 }

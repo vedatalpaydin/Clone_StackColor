@@ -9,7 +9,7 @@ public class CameraControl : MonoBehaviour
     [SerializeField] private chibiKick ck;
     private float smoothSpeed = 0.125f;
     private Vector3 smoothedPos, desiredPos;
-    [SerializeField] private Vector3 offset, powerUpOffset, bonusOffset, kickOffset;
+    [SerializeField] private Vector3 offset, powerUpOffset, bonusOffset, kickOffset,collectCountOffset;
 
     void Start()
     {
@@ -41,10 +41,18 @@ public class CameraControl : MonoBehaviour
             desiredPos = target.position + offset;
             smoothedPos = Vector3.Lerp(transform.position, desiredPos, smoothSpeed);
             transform.position = smoothedPos;
+            if (_pc.GetCollectsCount() >50 && !_pc.GetPowerUp())
+            {
+                desiredPos = target.position + collectCountOffset;
+                smoothedPos = Vector3.Lerp(transform.position, desiredPos, smoothSpeed);
+                transform.position = smoothedPos;
+                transform.rotation = Quaternion.Euler(30,-15,0);
+            }
             if (_pc.GetPowerUp())
             {
                 Vector3 powerUpPos = target.position + powerUpOffset;
                 transform.position = powerUpPos;
+                transform.rotation = Quaternion.Euler(0,-16.7f,0);
             }
         }
     }
