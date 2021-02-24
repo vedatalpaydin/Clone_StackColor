@@ -65,11 +65,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Update()
+    void ProcessScoreMultiply()
     {
-        scoreText.text = score + "";
-        ProcessProgressBar();
-        
         if (cameraSetTarget)
         {
             if (processFinish)
@@ -89,53 +86,79 @@ public class PlayerController : MonoBehaviour
                 processFinish = true;
             }
         }
+    }
 
+    void ProcessPowerBar()
+    {
+        powerBar.SetActive(true);
+        transform.position = new Vector3(0, 0, transform.position.z);
+        if (Input.GetMouseButtonDown(0))
+            kickPower++;
+        if (kickPower > 0)
+            kickPower -= 0.05f;
+        _powerController.SetPower(kickPower);
+    }
+
+    void ProcessMoveForward()
+    {
+        startGame.SetActive(false);
+        anim.SetTrigger("Run");
+        if (rb.velocity.z < maxSpeed)
+            rb.AddForce(Vector3.forward * (moveSpeed * Time.deltaTime));
+        rb.drag = Mathf.Clamp(rb.drag - 0.1f, 0, 7);
+    }
+
+    void ProcessMoveRightLeft()
+    {
+        Vector2 currentMousePos = Input.mousePosition;
+        Vector2 delta = currentMousePos - lastMousePos;
+        lastMousePos = currentMousePos;
+        transform.position =
+            new Vector3(Mathf.Clamp(transform.position.x + delta.x * Time.deltaTime * xSpeed, -3, 3),
+                transform.position.y, transform.position.z);
+    }
+
+    void ProcessGameFinish()
+    {
+        anim.SetTrigger("Kick");
+        powerBar.SetActive(false);
+        powerUp = false;
+        gameIsStart = false;
+    }
+
+    private void FixedUpdate()
+    {
+        if (Input.GetMouseButtonDown(0) && !gameIsFinish && !powerUp)
+        {
+            lastMousePos = Input.mousePosition;
+            gameIsStart = true;
+        }
+
+        if (gameIsStart && !gameIsFinish && !powerUp)
+        {
+            ProcessMoveForward();
+            if (Input.GetMouseButton(0))
+            {
+                ProcessMoveRightLeft();
+            }
+        }
+    }
+
+    void Update()
+    {
         playerColor = rend.material.color;
+        scoreText.text = score + "";
+        ProcessProgressBar();
+        ProcessScoreMultiply();
+
+
         if (gameIsFinish)
         {
-            anim.SetTrigger("Kick");
-            powerBar.SetActive(false);
-            powerUp = false;
-            gameIsStart = false;
+            ProcessGameFinish();
         }
-        else
+        else if (powerUp)
         {
-            if (powerUp)
-            {
-                powerBar.SetActive(true);
-                transform.position = new Vector3(0, 0, transform.position.z);
-                if (Input.GetMouseButtonDown(0))
-                    kickPower++;
-                if (kickPower > 0)
-                    kickPower -= 0.05f;
-                _powerController.SetPower(kickPower);
-            }
-            else
-            {
-                if (Input.GetMouseButtonDown(0) && !gameIsFinish)
-                {
-                    lastMousePos = Input.mousePosition;
-                    gameIsStart = true;
-                }
-
-                if (gameIsStart)
-                {
-                    startGame.SetActive(false);
-                    anim.SetTrigger("Run");
-                    if (rb.velocity.z < maxSpeed)
-                        rb.AddForce(Vector3.forward * Time.deltaTime * moveSpeed * Time.time);
-                    rb.drag = Mathf.Clamp(rb.drag - 0.1f, 0, 7);
-                    if (Input.GetMouseButton(0))
-                    {
-                        Vector2 currentMousePos = Input.mousePosition;
-                        Vector2 delta = currentMousePos - lastMousePos;
-                        lastMousePos = currentMousePos;
-                        transform.position =
-                            new Vector3(Mathf.Clamp(transform.position.x + delta.x * Time.deltaTime * xSpeed, -3, 3),
-                                transform.position.y, transform.position.z);
-                    }
-                }
-            }
+            ProcessPowerBar();
         }
     }
 
